@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <title>Správa Autoparku</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    }
+
+    input, button {
+      padding: 8px;
+      margin: 5px 0;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    button {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 5px;
+      font-size: 12px;
+      padding: 6px;
+      min-width: 60px;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    .car {
+      border-bottom: 1px solid #ddd;
+      padding: 10px 0;
+    }
+
+    .car:last-child {
+      border-bottom: none;
+    }
+
+    .car-buttons {
+      margin-top: 5px;
+      display: flex;
+      gap: 5px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .car-buttons input {
+      width: 100px;
+      padding: 6px;
+      font-size: 12px;
+    }
+
+    .btn-small {
+      padding: 4px 6px;
+      font-size: 11px;
+      min-width: auto;
+    }
+
+    .btn-delete {
+      background-color: #dc3545;
+    }
+
+    .btn-delete:hover {
+      background-color: #a71d2a;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🚗 Správa Autoparku</h1>
+
+    <h3>Přidat auto</h3>
+    <input type="text" id="znacka" placeholder="Značka">
+    <input type="text" id="model" placeholder="Model">
+    <input type="number" id="rok" placeholder="Rok výroby">
+    <button onclick="pridejAuto()">Přidat auto</button>
+
+    <h3>Seznam aut</h3>
+    <div id="auta"></div>
+  </div>
+
+  <script>
+    class Auto {
+      constructor(znacka, model, rok) {
+        this.znacka = znacka;
+        this.model = model;
+        this.rok = rok;
+        this.nadrz = 100;
+        this.km = 0;
+      }
+
+      jed(km) {
+        const spotreba = km * 0.1;
+        if (this.nadrz >= spotreba) {
+          this.km += km;
+          this.nadrz -= spotreba;
+          alert(`Auto ${this.znacka} ujelo ${km} km.`);
+        } else {
+          alert("Není dost paliva!");
+        }
+      }
+
+      natankuj() {
+        this.nadrz = 100;
+        alert(`Auto ${this.znacka} bylo natankováno.`);
+      }
+
+      info() {
+        return `${this.znacka} ${this.model} (${this.rok}) - ${this.km} km, Nádrž: ${this.nadrz.toFixed(1)} %`;
+      }
+    }
+
+    let autopark = [];
+
+    function pridejAuto() {
+      const znacka = document.getElementById("znacka").value.trim();
+      const model = document.getElementById("model").value.trim();
+      const rok = document.getElementById("rok").value;
+
+      if (znacka && model && rok && rok > 1900 && rok <= new Date().getFullYear()) {
+        const noveAuto = new Auto(znacka, model, parseInt(rok));
+        autopark.push(noveAuto);
+        zobrazAuta();
+        document.getElementById("znacka").value = "";
+        document.getElementById("model").value = "";
+        document.getElementById("rok").value = "";
+      } else {
+        alert("Vyplň všechna pole správně.");
+      }
+    }
+
+    function zobrazAuta() {
+      const autaDiv = document.getElementById("auta");
+      autaDiv.innerHTML = "";
+
+      autopark.forEach((auto, index) => {
+        const div = document.createElement("div");
+        div.className = "car";
+        div.innerHTML = `
+          <strong>${auto.info()}</strong>
+          <div class="car-buttons">
+            <input type="number" id="vzdalenost-${index}" placeholder="Kolik km?">
+            <button class="btn-small" onclick="jedAuto(${index})">Jet</button>
+            <button class="btn-small" onclick="autopark[${index}].natankuj(); zobrazAuta()">Natankovat</button>
+            <button class="btn-small btn-delete" onclick="smazAuto(${index})">Smazat</button>
+          </div>
+        `;
+        autaDiv.appendChild(div);
+      });
+    }
+
+    function jedAuto(index) {
+      const input = document.getElementById(`vzdalenost-${index}`);
+      const km = parseFloat(input.value);
+      if (!isNaN(km) && km > 0) {
+        autopark[index].jed(km);
+        zobrazAuta();
+      } else {
+        alert("Zadej platnou vzdálenost.");
+      }
+    }
+
+    function smazAuto(index) {
+      if (confirm("Opravdu chceš auto smazat?")) {
+        autopark.splice(index, 1);
+        zobrazAuta();
+      }
+    }
+  </script>
+</body>
+</html>
